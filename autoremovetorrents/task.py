@@ -16,13 +16,13 @@ from autoremovetorrents.torrentstatus import TorrentStatus
 class Task(object):
     def __init__(self, name, conf, remove_torrents = True):
         # Logger
-        self._logger = logger.register(__name__)
+        self._logger = logger.Logger.register(__name__)
 
         # Save task name
         self._name = name
 
         # Replace environment variables first
-        pattern = re.compile('\$\(([^\)]+)\)')
+        pattern = re.compile(r'\$\(([^\)]+)\)')
         replace_keys = ['host', 'username', 'password']
         for key in replace_keys:
             if key in conf:
@@ -41,18 +41,19 @@ class Task(object):
         self._strategies = conf['strategies'] if 'strategies' in conf else []
 
         # Torrents
-        self._torrents = []
-        self._remove = []
+        self._torrents = set()
+        self._remove = set()
 
         # Allow removing specified torrents
         if 'force_delete' in conf:
             for hash in conf['force_delete']:
-                self._remove.append(Torrent(
+                self._remove.add(Torrent(
                     hash,
                     hash,
                     '(No Category)',
                     [],
                     TorrentStatus.Unknown,
+                    False,
                     0,
                     0,
                     0,
@@ -77,6 +78,7 @@ class Task(object):
         else:
             raise NoSuchClient("The client `%s` doesn't exist." % self._client_name)
         self._logger.info('Login successfully. The client is %s.' % self._client.version())
+        self._logger.info('WebUI API version: %s' % self._client.api_version())
 
     # Get all the torrents and properties
     def _get_torrents(self):
@@ -84,21 +86,20 @@ class Task(object):
         last_time = time.time()
         for hash_value in self._client.torrents_list():
             # Append new torrent
-            self._torrents.append(self._client.torrent_properties(hash_value))
+            self._torrents.add(self._client.torrent_properties(hash_value))
             # For a long waiting
-            if time.time() - last_time > 10:
-                self._logger.info('Please wait...We have found %d seed(s).' %
+            if time.time() - last_time > 1:
+                self._logger.info('Please wait...We have found %d torrent(s).' %
                     len(self._torrents))
                 last_time = time.time()
-        self._logger.info('Found %d seed(s) in the client.' % len(self._torrents))
+        self._logger.info('Found %d torrent(s) in the client.' % len(self._torrents))
 
     # Apply strategies
     def _apply_strategies(self):
         for strategy_name in self._strategies:
             strategy = Strategy(strategy_name, self._strategies[strategy_name])
             strategy.execute(self._torrents)
-            self._torrents = strategy.remain_list
-            self._remove.extend(strategy.remove_list)
+            self._remove.update(strategy.remove_list)
 
     # Remove torrents
     def _remove_torrents(self):
@@ -112,8 +113,17 @@ class Task(object):
 
     # Execute
     def execute(self):
+        self._logger.info("Running task '%s'..." % self._name)
         self._login()
         self._get_torrents()
         self._apply_strategies()
         if self._enabled_remove:
             self._remove_torrents()
+
+    # Get remaining torrents (for tester)
+    def get_remaining_torrents(self):
+        return self._torrents
+
+    # Get removed torrents (for tester)
+    def get_removed_torrents(self):
+        return self._remove

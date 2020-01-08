@@ -10,11 +10,12 @@ from .condition.ratio import RatioCondition
 from .condition.torrentsize import TorrentSizeCondition
 from .condition.torrentnumber import TorrentNumberCondition
 from .condition.donothing import EmptyCondition
+from .conditionparser import ConditionParser
 
 class Strategy(object):
     def __init__(self, name, conf):
         # Logger
-        self._logger = logger.register(__name__)
+        self._logger = logger.Logger.register(__name__)
 
         # Save name
         self._name = name
@@ -23,8 +24,8 @@ class Strategy(object):
         self._conf = conf
 
         # Results
-        self.remain_list = []
-        self.remove_list = []
+        self.remain_list = set()
+        self.remove_list = set()
 
         # Filter ALL
         self._all_categories = conf['all_categories'] if 'all_categories' in conf \
@@ -43,6 +44,11 @@ class Strategy(object):
         ]
         filter_obj = [CategoryFilter, TrackerFilter, StatusFilter]
         for i in range(0, len(filter_conf)):
+            # User can use a single line to represent one item instead of using list
+            if filter_conf[i]['ac'] in self._conf and type(self._conf[filter_conf[i]['ac']]) != list:
+                self._conf[filter_conf[i]['ac']] = [self._conf[filter_conf[i]['ac']]]
+            if filter_conf[i]['re'] in self._conf and type(self._conf[filter_conf[i]['re']]) != list:
+                self._conf[filter_conf[i]['re']] = [self._conf[filter_conf[i]['re']]]
             # Apply each filter
             self.remain_list = filter_obj[i](
                 filter_conf[i]['all'],
@@ -53,39 +59,36 @@ class Strategy(object):
     # Apply Conditions
     def _apply_conditions(self):
         # Condition collection
-        condition_field = [
-            'seeding_time', 'create_time',
-            'ratio', 'seed_size', 'maximum_number', 'nothing'
-        ]
-        condition_obj = [
-            SeedingTimeCondition, CreateTimeCondition,
-            RatioCondition, TorrentSizeCondition, TorrentNumberCondition, EmptyCondition
-        ]
-        for i in range(0, len(condition_field)):
-            # Apply each condition
-            if condition_field[i] in self._conf:
-                cond = condition_obj[i](self._conf[condition_field[i]])
+        conditions = {
+            'remove': ConditionParser,
+            'seeding_time': SeedingTimeCondition,
+            'create_time': CreateTimeCondition,
+            'ratio': RatioCondition,
+            'seed_size': TorrentSizeCondition,
+            'maximum_number': TorrentNumberCondition,
+            'nothing': EmptyCondition
+        }
+        for conf in self._conf:
+            if conf in conditions:
+                # Applying condition processor
+                cond = conditions[conf](self._conf[conf])
                 cond.apply(self.remain_list)
+                # Output
                 self.remain_list = cond.remain
-                self.remove_list.extend(cond.remove)
+                self.remove_list.update(cond.remove)
 
     # Execute this strategy
     def execute(self, torrents):
         self._logger.info('Running strategy %s...' % self._name)
-
         self.remain_list = torrents
         # Apply Filters
         self._apply_filters()
         # Apply Conditions
         self._apply_conditions()
         # Print remove list
-        self._logger.info("Total: %d seed(s). %d seed(s) can be removed." %
+        self._logger.info("Total: %d torrent(s). %d torrent(s) can be removed." %
             (len(self.remain_list)+len(self.remove_list), len(self.remove_list)))
         if len(self.remove_list) > 0:
             self._logger.info('To be deleted:')
             for torrent in self.remove_list:
                 self._logger.info(torrent)
-        #self._logger.info('To be remained:')
-        #for torrent in self.remain_list:
-        #    self._logger.info(torrent)
-        #return self.remove_list

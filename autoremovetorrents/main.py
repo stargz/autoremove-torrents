@@ -15,12 +15,13 @@ def pre_processor(argv):
     conf_path = 'config.yml'
     # Task
     task = None
-    # Logger
-    lg = logger.register(__name__)
+
+    # Set default logging path to current working directory
+    logger.Logger.log_path = ''
 
     # Get arguments
     try:
-        opts = getopt.getopt(argv, 'vc:t:', ['view', 'conf=', 'task='])[0]
+        opts = getopt.getopt(argv, 'vc:t:l:', ['view', 'conf=', 'task=', 'log='])[0]
     except getopt.GetoptError:
         print('Invalid arguments.')
         sys.exit(255)
@@ -31,6 +32,11 @@ def pre_processor(argv):
             conf_path = arg
         elif opt in ('-t', '--task'):
             task = arg
+        elif opt in ('-l', '--log'):
+            logger.Logger.log_path = arg
+
+    # Logger
+    lg = logger.Logger.register(__name__)
 
     # Run autoremove
     try:
@@ -56,7 +62,7 @@ def pre_processor(argv):
     except Exception:
         lg.error(traceback.format_exc().splitlines()[-1])
         lg.debug('Exception Logged', exc_info=True)
-        lg.critical('An error occured. Please contact the administrator for more information.')
+        lg.critical('An error occured. If you think this is a bug or need help, you can submit an issue.')
 
 def main():
     pre_processor(sys.argv[1:])
