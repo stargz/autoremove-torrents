@@ -1,5 +1,4 @@
 # -*- coding:utf-8 -*-
-import sys
 import os
 import time
 import re
@@ -11,7 +10,6 @@ from .client.utorrent import uTorrent
 from .exception.nosuchclient import NoSuchClient
 from .strategy import Strategy
 from autoremovetorrents.torrent import Torrent
-from autoremovetorrents.torrentstatus import TorrentStatus
 
 class Task(object):
     def __init__(self, name, conf, remove_torrents = True):
@@ -26,7 +24,7 @@ class Task(object):
         replace_keys = ['host', 'username', 'password']
         for key in replace_keys:
             if key in conf:
-                env = pattern.match(conf[key])
+                env = pattern.match(str(conf[key]))
                 if env is not None and env.group(1) in os.environ:
                     conf[key] = os.environ[env.group(1)]
 
@@ -47,19 +45,10 @@ class Task(object):
         # Allow removing specified torrents
         if 'force_delete' in conf:
             for hash in conf['force_delete']:
-                self._remove.add(Torrent(
-                    hash,
-                    hash,
-                    '(No Category)',
-                    [],
-                    TorrentStatus.Unknown,
-                    False,
-                    0,
-                    0,
-                    0,
-                    sys.maxsize, # No create time
-                    -1 # No seeding time
-                ))
+                torrent_obj = Torrent()
+                torrent_obj.hash = hash
+                torrent_obj.name = hash
+                self._remove.add(torrent_obj)
 
     # Login client
     def _login(self):

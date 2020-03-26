@@ -27,10 +27,10 @@ for _k, _v in _lr_goto_items.items():
 del _lr_goto_items
 _lr_productions = [
   ("S' -> statement","S'",1,None,None,None),
-  ('statement -> expression','statement',1,'p_statement','conditionparser.py',36),
-  ('expression -> LPAREN expression RPAREN','expression',3,'p_sub_expression','conditionparser.py',41),
-  ('expression -> expression AND expression','expression',3,'p_and_or_expression','conditionparser.py',46),
-  ('expression -> expression OR expression','expression',3,'p_and_or_expression','conditionparser.py',47),
-  ('expression -> CONDITION LT NUMBER','expression',3,'p_relation_expression','conditionparser.py',56),
-  ('expression -> CONDITION GT NUMBER','expression',3,'p_relation_expression','conditionparser.py',57),
+  ('statement -> expression','statement',1,'p_statement','conditionparser.py',44),
+  ('expression -> LPAREN expression RPAREN','expression',3,'p_sub_expression','conditionparser.py',49),
+  ('expression -> expression AND expression','expression',3,'p_and_or_expression','conditionparser.py',54),
+  ('expression -> expression OR expression','expression',3,'p_and_or_expression','conditionparser.py',55),
+  ('expression -> CONDITION LT NUMBER','expression',3,'p_relation_expression','conditionparser.py',64),
+  ('expression -> CONDITION GT NUMBER','expression',3,'p_relation_expression','conditionparser.py',65),
 ]

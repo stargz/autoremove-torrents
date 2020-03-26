@@ -1,48 +1,62 @@
 #-*- coding:utf-8 -*-
 
-import sys
 import time
 
+from .compatibility.urlparse_ import urlparse_
 from .torrentstatus import TorrentStatus
 
 class Torrent(object):
-    def __init__(self, hash_value, name, category, tracker, status, stalled, size, ratio,
-        uploaded, create_time, seeding_time):
-        # Save Properties
-        self.hash = hash_value
-        self.name = name
-        self.category = category
-        self.tracker = tracker
-        self.status = status
-        self.stalled = stalled
-        self.size = size
-        self.ratio = ratio
-        self.uploaded = uploaded
-        self.create_time = create_time
-        self.seeding_time = seeding_time
+    def __init__(self):
+        # Proper attributes:
+        # hash, name, category, tracker, status, size, ratio, uploaded, create_time, seeding_time
+        pass
 
     # Format torrent info
     def __str__(self):
-        return "%s\nSize:%s\tRatio:%.3f\tTotal Uploaded:%s\tSeeding Time:%s\tCategory:%s\nCreate Time:%s" % \
-            (self.name,
-            self._convert_bytes(self.size),
-            self.ratio,
-            self._convert_bytes(self.uploaded),
-            self._convert_seconds(self.seeding_time),
-            self.category,
-            self._convert_timestamp(self.create_time)
+        def disp(prop, converter = None):
+            if hasattr(self, prop):
+                if converter is None:
+                    return getattr(self, prop)
+                else:
+                    return converter(getattr(self, prop))
+            else:
+                return '(Not Provided)'
+        
+        return ("%s\n" +
+            "\tProgress:%.2f%%\tSize:%s\tRatio:%.3f\tTotal Uploaded:%s\n" +
+            "\tSeeder(connected/total):%d/%d\tLeecher(connected/total):%d/%d\tStatus:%s\n" +
+            "\tDownload Speed:%s(Avg.:%s)\tUpload Speed:%s(Avg.:%s)\n" +
+            "\tCreate Time:%s\tSeeding Time:%s\tLast Activity:%s\n" +
+            "\tCategory:%s\tTracker:%s") % \
+            (
+                disp('name'),
+                disp('progress', lambda x: x*100),
+                disp('size', self._convert_bytes),
+                disp('ratio'),
+                disp('uploaded', self._convert_bytes),
+                disp('connected_seeder'),
+                disp('seeder'),
+                disp('connected_leecher'),
+                disp('leecher'),
+                disp('status', self._convert_status),
+                disp('download_speed', self._convert_speed),
+                disp('average_download_speed', self._convert_speed),
+                disp('upload_speed', self._convert_speed),
+                disp('average_upload_speed', self._convert_speed),
+                disp('create_time', self._convert_timestamp),
+                disp('seeding_time', self._convert_seconds),
+                disp('last_activity', self._convert_timestamp),
+                disp('category', self._convert_category),
+                disp('tracker', self._convert_tracker),
             )
     
     # Convert Seconds
     @staticmethod
     def _convert_seconds(sec):
-        if sec == -1:
-            return '(Not Provided)'
-        else:
-            m, s = divmod(sec, 60)
-            h, m = divmod(m, 60)
-            d, h = divmod(h, 24)
-            return ('%dd %02d:%02d:%02d' % (d, h, m, s))
+        m, s = divmod(sec, 60)
+        h, m = divmod(m, 60)
+        d, h = divmod(h, 24)
+        return ('%dd %02d:%02d:%02d' % (d, h, m, s))
 
     # Convert Bytes
     @staticmethod
@@ -56,8 +70,29 @@ class Torrent(object):
                 byte /= 1024
         return ('%.2lf%s' % (byte, x))
     
+    # Convert Speed
+    @staticmethod
+    def _convert_speed(byte):
+        return ('%s/s' % Torrent._convert_bytes(byte))
+    
     # Convert Timestamp
     @staticmethod
     def _convert_timestamp(timestamp):
-        return '(Not Provided)' if timestamp == sys.maxsize \
-            else time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(timestamp))
+        return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(timestamp))
+    
+    # Convert Category
+    @staticmethod
+    def _convert_category(categories):
+        return ','.join(categories)
+    
+    # Convert Tracker
+    @staticmethod
+    def _convert_tracker(trackers):
+        return ','.join(
+            [urlparse_(x).hostname if urlparse_(x).hostname is not None else x for x in trackers]
+        )
+    
+    # Convert Status
+    @staticmethod
+    def _convert_status(status):
+        return status.name

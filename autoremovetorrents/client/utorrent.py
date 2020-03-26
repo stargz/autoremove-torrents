@@ -1,7 +1,6 @@
 #-*- coding:utf-8 -*-
 import re
 import time
-import sys
 from requests.auth import HTTPBasicAuth
 import requests
 from ..torrent import Torrent
@@ -88,13 +87,29 @@ class uTorrent(object):
             self.torrents_list()
         for torrent in self._torrents_list_cache['torrents']:
             if torrent[0] == torrent_hash:
-                # Get torrent's tracker
-                trackers = self._torrent_job_properties(torrent_hash)['trackers'].split()
-                return Torrent(
-                    torrent[0], torrent[2], torrent[11], trackers, uTorrent._judge_status(torrent[1], torrent[4]), 
-                    False, # uTorrent never has stall status
-                    torrent[3], torrent[7]/1000,
-                    torrent[6], sys.maxsize, -1)
+                # Properties
+                properties = self._torrent_job_properties(torrent_hash)
+                # Create torrent object
+                torrent_obj = Torrent()
+                torrent_obj.hash = torrent[0]
+                torrent_obj.name = torrent[2]
+                # The category list will be empty if a torrent was not specified categories
+                torrent_obj.category = [torrent[11]] if len(torrent[11]) > 0 else []
+                torrent_obj.tracker = properties['trackers'].split()
+                torrent_obj.status = uTorrent._judge_status(torrent[1], torrent[4])
+                torrent_obj.size = torrent[3]
+                torrent_obj.ratio = torrent[7]/1000
+                torrent_obj.uploaded = torrent[6]
+                torrent_obj.seeding_time = torrent[6]
+                torrent_obj.upload_speed = properties['ulrate']
+                torrent_obj.download_speed = properties['dlrate']
+                torrent_obj.seeder = torrent[15]
+                torrent_obj.connected_seeder = torrent[14]
+                torrent_obj.leecher = torrent[13]
+                torrent_obj.connected_leecher = torrent[12]
+                torrent_obj.progress = torrent[4]
+                
+                return torrent_obj
         # Not Found
         raise NoSuchTorrent('No such torrent.')
 
@@ -110,6 +125,10 @@ class uTorrent(object):
                 status = TorrentStatus.Downloading
         elif state & 2: # Checking
             status = TorrentStatus.Checking
+        elif state & 16: # Error
+            status = TorrentStatus.Error
+        elif state & 64: # Queued
+            status = TorrentStatus.Queued
         elif state & 128: # Loaded
             status = TorrentStatus.Stopped
         else:

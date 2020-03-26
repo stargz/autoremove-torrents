@@ -1,10 +1,12 @@
 Auto Remove Torrents
 ======================
-|PyPI| |TravisCI| |Coverage| |Codacy| |Downloads| |MIT|
+|PyPI| |TravisCI| |ReadTheDocs| |Coverage| |Codacy| |Downloads| |MIT|
 
 This program can help you to remove your torrents. Now you don't need to worry about your disk space - according to your strategies, the program will check each torrent if it satisfies the remove condition; If so, delete it automatically.
 
-This program supports qBittorrent/Transmission/μTorrent. If you like, star it :sparkles: :)
+This program supports qBittorrent/Transmission/μTorrent. If you like, star it :star2: :)
+
+Documentation: https://autoremove-torrents.readthedocs.io/en/latest/
 
 Readme version in other languages: `简体中文`_.
 
@@ -14,6 +16,8 @@ Readme version in other languages: `简体中文`_.
     :target: https://www.codacy.com/app/jerrymakesjelly/autoremove-torrents?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=jerrymakesjelly/autoremove-torrents&amp;utm_campaign=Badge_Grade
 .. |TravisCI| image:: https://www.travis-ci.org/jerrymakesjelly/autoremove-torrents.svg?branch=master
    :target: https://www.travis-ci.org/jerrymakesjelly/autoremove-torrents
+.. |ReadTheDocs| image:: https://readthedocs.org/projects/autoremove-torrents/badge/?version=latest
+   :target: https://autoremove-torrents.readthedocs.io/en/latest/?badge=latest
 .. |Coverage| image:: https://api.codacy.com/project/badge/Coverage/6e5509ecb4714ed697c65f35d71cff65    
    :target: https://www.codacy.com/app/jerrymakesjelly/autoremove-torrents?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=jerrymakesjelly/autoremove-torrents&amp;utm_campaign=Badge_Coverage
 .. |MIT| image:: https://img.shields.io/badge/license-MIT-blue.svg
@@ -69,14 +73,13 @@ The grammar is quite easy, for example::
       password: adminadmin
       strategies:
         my_strategy:
-          categories:
-            - IPT
+          categories: IPT
           remove: seeding_time > 1209600 or ratio > 1
       delete_data: true
 
-The program will delete those torrents whose categories are ``IPT``, seeding time is above 1209600 seconds **or** ratio is greater than 1. Visit `Wiki`_ to learn more.
+The program will delete those torrents whose categories are ``IPT``, seeding time is above 1209600 seconds **or** ratio is greater than 1. Read the `documents`_ to learn more.
 
-.. _Wiki: https://github.com/jerrymakesjelly/autoremove-torrents/wiki
+.. _documents: https://autoremove-torrents.readthedocs.io/en/latest
 
 Run
 ++++
@@ -108,6 +111,34 @@ Screenshot
 
 Changelog
 ----------
+**Sat, 29 Feb 2020**: Version 1.5.1.
+
+* Fix missing status ``StalledUpload`` and ``StalledDownload`` in version 1.5.0. (#66)
+
+**Fri, 28 Feb 2020**: Version 1.5.0.
+
+* Fix a problem: cannot login to client with numeric username or password. (#64)
+* Fix a problem: tasks could not be executed in a Transmission without label properties.
+* Fix a problem: removing conditions may not work for unlabeled and trackerless torrents.
+* Fix a problem: missing status ``Queued`` in μTorrent.
+* Add new status ``Error`` to filter ``status``.
+* Add support for Transmission labels. (#24)
+* Add removing conditions: Maximum Download Speed ``max_downloadspeed`` and Minimum Upload Speed ``min_uploadspeed``.
+* Add removing conditions: Maximum Average Download Speed ``max_average_downloadspeed`` and Minimum Average Upload Speed ``min_average_uploadspeed``. (#49)
+* Add removing conditions: Maximum Torrent Size ``max_size``. (#21)
+* Add removing conditions: Maximum Number of Seeders ``max_seeder`` and Minimum Number of Leechers ``min_leecher``. (#62)
+* Add removing conditions: Maximum Number of Connected Seeders ``max_connected_seeder`` and Minimum Number of Connected Leechers ``min_connected_leecher``.
+* Add a removing condition: Last Activity ``last_activity``, which removes torrents without upload or download speed for a period of time. (#1) (#9)
+* Add a removing condition: Maximum Download Progress ``max_progress``.
+* Add actions: add ``remove-active-seeds`` and ``remove-inactive-seeds`` to ``free_space``, ``maximum_number`` and ``seed_size`` in order to try to remove active or inactive torrents based on the last active time. (#9)
+* Add a removing condition: Upload Ratio ``upload_ratio``, which can remove torrents based on the ratio of uploaded size to torrent size. (#55)
+
+**Mon, 3 Feb 2020**: Migrate documents to Read the Docs.
+
+**Sun, 26 Jan 2020**: Version 1.4.9.
+
+* Add `free_space` condition.
+
 **Tue, 7 Jan 2020**: Version 1.4.8.
 
 * Fix bug that cannot delete torrents in qBittorrent v4.2.1+. Sorry for any inconvenience. (#53)
@@ -205,15 +236,10 @@ You can now use the *autoremove-torrents* command directly instead of *python3 m
 
 TODO List
 -----------
-Depend on users' feedback.
-
-* Support Deluge and rtorrent in the future
-
-* Add remove condition: Disk free space
-
-* Add remove condition: Max/Min average UL/DL speed
-
-If you have any problem, please submit `issues`_.
+Depend on users' feedback. If you have any problem, please submit `issues`_.
 
 .. _issues: https://github.com/jerrymakesjelly/autoremove-torrents/issues
 
+`Click here`_ to see the TODO List.
+
+.. _Click here: https://github.com/jerrymakesjelly/autoremove-torrents/issues/63

@@ -167,15 +167,38 @@ class qBittorrent(object):
                 # Get other information
                 properties = self._request_handler.torrent_generic_properties(torrent_hash).json()
                 trackers = self._request_handler.torrent_trackers(torrent_hash).json()
-                return Torrent(
-                    torrent['hash'], torrent['name'],
-                    torrent['category'] if 'category' in torrent else torrent['label'],
-                    [tracker['url'] for tracker in trackers],
-                    qBittorrent._judge_status(torrent['state']), 
-                    torrent['state'] == 'stalledUP' or torrent['state'] == 'stalledDL',
-                    torrent['size'], torrent['ratio'],
-                    properties['total_uploaded'], properties['addition_date'],
-                    properties['seeding_time'])
+                # Create torrent object
+                torrent_obj = Torrent()
+                torrent_obj.hash = torrent['hash']
+                torrent_obj.name = torrent['name']
+                # The category list will be empty if a torrent was not specified categories
+                if 'category' in torrent:
+                    torrent_obj.category = [torrent['category']] if len(torrent['category']) > 0 else []
+                elif 'label' in torrent:
+                    torrent_obj.category = [torrent['label']] if len(torrent['label']) > 0 else []
+                torrent_obj.tracker = [tracker['url'] for tracker in trackers]
+                torrent_obj.status = qBittorrent._judge_status(torrent['state'])
+                torrent_obj.stalled = torrent['state'] == 'stalledUP' or torrent['state'] == 'stalledDL'
+                torrent_obj.size = torrent['size']
+                torrent_obj.ratio = torrent['ratio']
+                torrent_obj.uploaded = properties['total_uploaded']
+                torrent_obj.create_time = properties['addition_date']
+                torrent_obj.seeding_time = properties['seeding_time']
+                torrent_obj.upload_speed = properties['up_speed']
+                torrent_obj.download_speed = properties['dl_speed']
+                torrent_obj.seeder = properties['seeds_total']
+                torrent_obj.connected_seeder = properties['seeds']
+                torrent_obj.leecher = properties['peers_total']
+                torrent_obj.connected_leecher = properties['peers']
+                torrent_obj.average_upload_speed = properties['up_speed_avg']
+                torrent_obj.average_download_speed = properties['dl_speed_avg']
+                # For qBittorrent 3.x, the last activity field doesn't exist.
+                # We need to check the existence
+                if 'last_activity' in torrent:
+                    torrent_obj.last_activity = torrent['last_activity']
+                torrent_obj.progress = torrent['progress']
+
+                return torrent_obj
 
     # Judge Torrent Status (qBittorrent doesn't have stopped status)
     @staticmethod
@@ -190,6 +213,8 @@ class qBittorrent(object):
             status = TorrentStatus.Checking
         elif state == 'pausedUP' or state == 'pausedDL':
             status = TorrentStatus.Paused
+        elif state == 'error':
+            status = TorrentStatus.Error
         else:
             status = TorrentStatus.Unknown
         return status

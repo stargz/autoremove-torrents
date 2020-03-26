@@ -1,16 +1,29 @@
 #-*- coding:utf-8 -*-
-
 from . import logger
-from .filter.category import CategoryFilter
-from .filter.tracker import TrackerFilter
-from .filter.status import StatusFilter
-from .condition.seedingtime import SeedingTimeCondition
+from .condition.avgdownloadspeed import AverageDownloadSpeedCondition
+from .condition.avguploadspeed import AverageUploadSpeedCondition
+from .condition.connectedleecher import ConnectedLeecherCondition
+from .condition.connectedseeder import ConnectedSeederCondition
 from .condition.createtime import CreateTimeCondition
-from .condition.ratio import RatioCondition
-from .condition.torrentsize import TorrentSizeCondition
-from .condition.torrentnumber import TorrentNumberCondition
+from .condition.downloadspeed import DownloadSpeedCondition
 from .condition.donothing import EmptyCondition
+from .condition.freespace import FreeSpaceCondition
+from .condition.lastactivity import LastActivityCondition
+from .condition.leecher import LeecherCondition
+from .condition.progress import ProgressCondition
+from .condition.ratio import RatioCondition
+from .condition.seeder import SeederCondition
+from .condition.seedingtime import SeedingTimeCondition
+from .condition.size import SizeCondition
+from .condition.torrentnumber import TorrentNumberCondition
+from .condition.torrentsize import TorrentSizeCondition
+from .condition.uploadratio import UploadRatioCondition
+from .condition.uploadspeed import UploadSpeedCondition
 from .conditionparser import ConditionParser
+from .exception.unsupportedproperty import UnsupportedProperty
+from .filter.category import CategoryFilter
+from .filter.status import StatusFilter
+from .filter.tracker import TrackerFilter
 
 class Strategy(object):
     def __init__(self, name, conf):
@@ -39,10 +52,10 @@ class Strategy(object):
     def _apply_filters(self):
         filter_conf = [
             {'all':self._all_categories, 'ac':'categories', 're':'excluded_categories'}, # Category filter
+            {'all':self._all_status, 'ac':'status', 're':'excluded_status'}, # Status filter
             {'all':self._all_trackers, 'ac':'trackers', 're':'excluded_trackers'}, # Tracker filter
-            {'all':self._all_status, 'ac':'status', 're':'excluded_status'} # Status filter
         ]
-        filter_obj = [CategoryFilter, TrackerFilter, StatusFilter]
+        filter_obj = [CategoryFilter, StatusFilter, TrackerFilter]
         for i in range(0, len(filter_conf)):
             # User can use a single line to represent one item instead of using list
             if filter_conf[i]['ac'] in self._conf and type(self._conf[filter_conf[i]['ac']]) != list:
@@ -60,19 +73,38 @@ class Strategy(object):
     def _apply_conditions(self):
         # Condition collection
         conditions = {
-            'remove': ConditionParser,
-            'seeding_time': SeedingTimeCondition,
             'create_time': CreateTimeCondition,
-            'ratio': RatioCondition,
-            'seed_size': TorrentSizeCondition,
+            'free_space': FreeSpaceCondition,
+            'last_activity': LastActivityCondition,
+            'max_average_downloadspeed': AverageDownloadSpeedCondition,
+            'max_connected_seeder': ConnectedSeederCondition,
+            'max_downloadspeed': DownloadSpeedCondition,
+            'max_progress': ProgressCondition,
+            'max_seeder': SeederCondition,
             'maximum_number': TorrentNumberCondition,
-            'nothing': EmptyCondition
+            'min_average_uploadspeed': AverageUploadSpeedCondition,
+            'min_connected_leecher': ConnectedLeecherCondition,
+            'min_leecher': LeecherCondition,
+            'min_uploadspeed': UploadSpeedCondition,
+            'nothing': EmptyCondition,
+            'ratio': RatioCondition,
+            'remove': ConditionParser,
+            'seed_size': TorrentSizeCondition,
+            'seeding_time': SeedingTimeCondition,
+            'max_size': SizeCondition,
+            'upload_ratio': UploadRatioCondition,
         }
         for conf in self._conf:
             if conf in conditions:
                 # Applying condition processor
-                cond = conditions[conf](self._conf[conf])
-                cond.apply(self.remain_list)
+                try:
+                    cond = conditions[conf](self._conf[conf])
+                    cond.apply(self.remain_list)
+                except AttributeError as e:
+                    raise UnsupportedProperty(
+                        "%s. Your client may not support this property, so the condition %s does not work." % \
+                        (str(e), conf)
+                    )
                 # Output
                 self.remain_list = cond.remain
                 self.remove_list.update(cond.remove)

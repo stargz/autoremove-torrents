@@ -1,15 +1,19 @@
 自动删种程序
 ======================
-|PyPI| |TravisCI| |Coverage| |Codacy| |Downloads| |MIT|
+|PyPI| |TravisCI| |ReadTheDocs| |Coverage| |Codacy| |Downloads| |MIT|
 
 这个程序可以帮助你删除种子。现在你再也不用担心你的磁盘空间了——通过你设置的策略，程序会帮你检查每一个种子是否满足删除的条件；如果是，那就自动地删除它。
 
-这个程序支持 qBittorrent、Transmission 或 μTorrent。 如果你喜欢，可以点个星星 :sparkles: :)
+这个程序支持 qBittorrent、Transmission 或 μTorrent。 如果你喜欢，可以点个星星 :star2: :)
+
+文档：https://autoremove-torrents.readthedocs.io/zh_CN/latest/
 
 .. |Codacy| image:: https://api.codacy.com/project/badge/Grade/6e5509ecb4714ed697c65f35d71cff65
     :target: https://www.codacy.com/app/jerrymakesjelly/autoremove-torrents?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=jerrymakesjelly/autoremove-torrents&amp;utm_campaign=Badge_Grade
 .. |TravisCI| image:: https://www.travis-ci.org/jerrymakesjelly/autoremove-torrents.svg?branch=master
    :target: https://www.travis-ci.org/jerrymakesjelly/autoremove-torrents
+.. |ReadTheDocs| image:: https://readthedocs.org/projects/autoremove-torrents-cn/badge/?version=latest
+   :target: https://autoremove-torrents.readthedocs.io/zh_CN/latest/?badge=latest
 .. |Coverage| image:: https://api.codacy.com/project/badge/Coverage/6e5509ecb4714ed697c65f35d71cff65    
    :target: https://www.codacy.com/app/jerrymakesjelly/autoremove-torrents?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=jerrymakesjelly/autoremove-torrents&amp;utm_campaign=Badge_Coverage
 .. |MIT| image:: https://img.shields.io/badge/license-MIT-blue.svg
@@ -64,15 +68,14 @@
       password: adminadmin
       strategies:
         my_strategy:
-          categories:
-            - IPT
+          categories: IPT
           remove: seeding_time > 1209600 or ratio > 1
       delete_data: true
 
 
-在这个例子中，程序会自动删除那些标签是 IPT，做种时间超过 1209600 秒 **或者** 分享率大于 1 的种子。请访问 `Wiki`_ 以获得更多信息。
+在这个例子中，程序会自动删除那些标签是 IPT，做种时间超过 1209600 秒 **或者** 分享率大于 1 的种子。请查看 `文档`_ 以获得更多信息。
 
-.. _Wiki: https://github.com/jerrymakesjelly/autoremove-torrents/wiki/%E4%B8%BB%E9%A1%B5
+.. _文档: https://autoremove-torrents.readthedocs.io/zh_CN/latest/
 
 运行
 ++++
@@ -104,6 +107,34 @@
 
 更新日志
 ----------
+**2020-02-29 周六**：1.5.1 版本。
+
+* 修复了 1.5.0 版本中丢失的状态 ``StalledUpload`` 和 ``StalledDownload``。（#66）
+
+**2020-02-28 周五**：1.5.0 版本。
+
+* 修复了无法登录使用纯数字用户名或密码的客户端的问题（#64）；
+* 修复了在没有标签属性的 Transmission 中任务无法执行的问题；
+* 修复了删种条件可能对未打标签以及没有Tracker的种子无效的问题；
+* 修复了 status 中遗漏的 μTorrent 状态“排队中”（``Queued``）；
+* ``status`` 中添加 ``Error`` 状态；
+* 添加对 Transmission 标签的支持（#24）；
+* 添加删除条件“最大下载速度” ``max_downloadspeed``、“最小上传速度” ``min_uploadspeed``；
+* 添加删除条件“最小平均上传速度” ``min_average_uploadspeed``、“最大平均下载速度” ``max_average_downloadspeed`` （#49）；
+* 添加删除条件“最大种子大小” ``max_size`` （#21）；
+* 添加删除条件“最大做种数” ``max_seeder``、“最小下载数” ``min_leecher`` （#62）；
+* 添加删除条件“最大已连接做种者” ``max_connected_seeder``、“最小已连接下载者” ``min_connected_leecher``；
+* 添加删除条件“最后活动时间” ``last_activity``，以删除一段时间内没有上传或下载速度的种子（#1）（#9)；
+* 添加删除条件“最大下载百分比” ``max_progress``；
+* ``free_space``、``maximum_number``、``seed_size`` 的 ``action`` 中添加 ``remove-active-seeds``、``remove-inactive-seeds`` 动作，用于根据最后活动时间去尽量删除活跃的种子或者不活跃的种子（#9）；
+* 添加了新的删除条件“上传比率” ``upload_ratio``，可以根据上传量占种子大小的比例删种（#55）；
+
+**2020-02-03 周一**：迁移文档到 Read the Docs。
+
+**2020-01-26 周日**: 1.4.9 版本。
+
+* 添加了 `free_space` 条件（最小剩余空间）。
+
 **2020-01-07 周二**: 1.4.8 版本。
 
 * 修复了在 qBittorrent v4.2.1 中不能删除种子的问题。对造成的不便深感抱歉。 (#53)
@@ -199,17 +230,12 @@
 
 **2018-03-22 周四**: 第一个版本 :bowtie:
 
-未来计划列表
+计划列表
 -----------
-取决于用户的反馈
-
-* 未来支持 Deluge 和 rtorrent
-
-* 添加删除条件：磁盘空闲空间
-
-* 添加删除条件：最大/最小平均上传/下载速度
-
-如果你有任何问题，欢迎提交 `issues`_.
+看你们的反馈。如果你有任何问题，欢迎提交 `issues`_。
 
 .. _issues: https://github.com/jerrymakesjelly/autoremove-torrents/issues
 
+`点击这里`_ 查看TODO列表。
+
+.. _点击这里: https://github.com/jerrymakesjelly/autoremove-torrents/issues/63
