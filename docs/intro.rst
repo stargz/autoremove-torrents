@@ -38,18 +38,22 @@ Supported Properties
    :header-rows: 1
 
    * - Properties/Clients
+     - Deluge
      - qBittorrent
      - Transmission
      - μTorrent
    * - Average Download Speed
+     - ✓ :superscript:`2.0 or later`
      - ✓
      - ✓
      - ✗
    * - Average Upload Speed
      - ✓
      - ✓
+     - ✓
      - ✗
    * - Category
+     - ✓ :superscript:`Requires Label plugin`
      - ✓
      - ✓ :superscript:`3.00+ or later`
      - ✓
@@ -57,11 +61,14 @@ Supported Properties
      - ✓
      - ✓
      - ✓
+     - ✓
    * - Connected Seeder
      - ✓
      - ✓
      - ✓
+     - ✓
    * - Create Time
+     - ✓
      - ✓
      - ✓
      - ✗
@@ -69,7 +76,9 @@ Supported Properties
      - ✓
      - ✓
      - ✓
+     - ✓
    * - Last Activity
+     - ✓ :superscript:`2.0 or later`
      - ✓ :superscript:`v3.0 or later`
      - ✓
      - ✗
@@ -77,7 +86,9 @@ Supported Properties
      - ✓
      - ✓
      - ✓
+     - ✓
    * - Progress
+     - ✓
      - ✓
      - ✓
      - ✓
@@ -85,7 +96,9 @@ Supported Properties
      - ✓
      - ✓
      - ✓
+     - ✓
    * - Seeder
+     - ✓
      - ✓
      - ✓
      - ✓
@@ -93,11 +106,19 @@ Supported Properties
      - ✓
      - ✓
      - ✓
+     - ✓
    * - Size
      - ✓
      - ✓
      - ✓
+     - ✓
+   * - Stall Status
+     - ✗
+     - ✓
+     - ✓
+     - ✗
    * - Status
+     - ✓
      - ✓
      - ✓
      - ✓
@@ -105,11 +126,14 @@ Supported Properties
      - ✓
      - ✓
      - ✓
+     - ✓
    * - Upload Ratio
      - ✓
      - ✓
      - ✓
+     - ✓
    * - Upload Speed
+     - ✓
      - ✓
      - ✓
      - ✓
